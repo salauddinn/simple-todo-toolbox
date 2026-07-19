@@ -3,28 +3,26 @@ const Category = require('../models/Category');
 
 const router = express.Router();
 
-// Export early to support circular dependencies
+// Export the router first so the Todos <-> Categories require cycle resolves.
 module.exports = router;
 
-// Require todos to create a circular dependency (Categories <-> Todos)
+// Circular dependency edge: categories -> todos
 const todos = require('./todos');
 
+// GET /api/categories
 router.get('/', async (req, res) => {
     const categories = await Category.find().sort({ createdAt: -1 });
     res.json(categories);
 });
 
+// POST /api/categories
 router.post('/', async (req, res) => {
-    // Inline business logic and direct mongoose calls
     const category = await Category.create({ name: req.body.name });
-    
-    // Use the circular dependency
-    const todoCount = typeof todos.getTodoCount === 'function' ? await todos.getTodoCount() : 0;
-    
-    res.status(201).json({ category, currentTodos: todoCount });
+    const todoCount = await todos.getTodoCount();
+    res.status(201).json({ category, todoCount });
 });
 
-// Helper function for the circular dependency
-module.exports.getCategoryCount = async function() {
-    return await Category.countDocuments();
+// Exposed to Todos through the circular edge.
+module.exports.getCategoryCount = function getCategoryCount() {
+    return Category.countDocuments();
 };
