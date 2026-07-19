@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const todosRouter = require('./routes/todos');
+const categoriesRouter = require('./routes/categories');
 
 function createApp() {
     const app = express();
@@ -16,6 +17,7 @@ function createApp() {
 
     // Use Router group
     app.use('/api/todos', todosRouter);
+    app.use('/api/categories', categoriesRouter);
 
     return app;
 }
